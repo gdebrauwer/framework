@@ -732,11 +732,19 @@ class Builder
     /**
      * Get a lazy collection for the given query.
      *
+     * @param  bool $remember
+     *
      * @return \Illuminate\Support\LazyCollection
      */
-    public function cursor()
+    public function cursor($remember = false)
     {
-        return $this->applyScopes()->query->cursor()->map(function ($record) {
+        $cursor = $this->applyScopes()->query->cursor();
+
+        if ($remember) {
+            $cursor = $cursor->remember();
+        }
+
+        return $cursor->map(function ($record) {
             return $this->newModelInstance()->newFromBuilder($record);
         });
     }

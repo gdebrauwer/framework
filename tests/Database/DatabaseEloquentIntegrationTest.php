@@ -22,6 +22,7 @@ use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\LazyCollection;
 use Illuminate\Tests\Integration\Database\Fixtures\Post;
 use Illuminate\Tests\Integration\Database\Fixtures\User;
 use PHPUnit\Framework\TestCase;
@@ -210,6 +211,13 @@ class DatabaseEloquentIntegrationTest extends TestCase
             $this->assertSame('default', $model->getConnectionName());
         }
 
+        $models = EloquentTestUser::where('id', 1)->cursor(true);
+        foreach ($models as $model) {
+            $this->assertInstanceOf(EloquentTestUser::class, $model);
+            $this->assertEquals(1, $model->id);
+            $this->assertSame('default', $model->getConnectionName());
+        }
+
         $records = DB::table('users')->where('id', 1)->cursor();
         foreach ($records as $record) {
             $this->assertEquals(1, $record->id);
@@ -234,6 +242,30 @@ class DatabaseEloquentIntegrationTest extends TestCase
         $this->assertInstanceOf(EloquentTestUser::class, $models[1]);
         $this->assertSame('taylorotwell@gmail.com', $models[0]->email);
         $this->assertSame('abigailotwell@gmail.com', $models[1]->email);
+    }
+
+    public function testModelLazyCollectionRetrieval()
+    {
+        EloquentTestUser::create(['id' => 1, 'email' => 'taylorotwell@gmail.com']);
+        EloquentTestUser::create(['id' => 2, 'email' => 'abigailotwell@gmail.com']);
+
+        DB::enableQueryLog();
+
+        $models = EloquentTestUser::cursor();
+
+        $this->assertInstanceOf(LazyCollection::class, $models);
+        $this->assertSame('taylorotwell@gmail.com', $models->firstWhere('id', 1)->email);
+        $this->assertSame('abigailotwell@gmail.com', $models->firstWhere('id', 2)->email);
+        $this->assertCount(2, DB::getQueryLog());
+
+        DB::flushQueryLog();
+
+        $models = EloquentTestUser::cursor(true);
+
+        $this->assertInstanceOf(LazyCollection::class, $models);
+        $this->assertSame('taylorotwell@gmail.com', $models->firstWhere('id', 1)->email);
+        $this->assertSame('abigailotwell@gmail.com', $models->firstWhere('id', 2)->email);
+        $this->assertCount(1, DB::getQueryLog());
     }
 
     public function testPaginatedModelCollectionRetrieval()
