@@ -9686,6 +9686,34 @@ class ValidationValidatorTest extends TestCase
         $validator->passes();
     }
 
+    public function testWhenPasses()
+    {
+        $trans = $this->getIlluminateArrayTranslator();
+
+        $v = new Validator($trans, ['x' => 'foo'], ['x' => 'string']);
+        $this->assertSame('expectedValue', $v->whenPasses(fn () => 'expectedValue'));
+
+        $v = new Validator($trans, ['x' => 'foo'], ['x' => 'numeric']);
+        $this->assertNull($v->whenPasses(fn () => 'notExpectedValue'));
+
+        $v = new Validator($trans, ['x' => 'foo'], ['x' => 'numeric']);
+        $this->assertSame('expectedValue', $v->whenPasses(fn () => 'notExpectedValue', fn () => 'expectedValue'));
+    }
+
+    public function testWhenFails()
+    {
+        $trans = $this->getIlluminateArrayTranslator();
+
+        $v = new Validator($trans, ['x' => 'foo'], ['x' => 'numeric']);
+        $this->assertSame('expectedValue', $v->whenFails(fn () => 'expectedValue'));
+
+        $v = new Validator($trans, ['x' => 'foo'], ['x' => 'string']);
+        $this->assertNull($v->whenFails(fn () => 'notExpectedValue'));
+
+        $v = new Validator($trans, ['x' => 'foo'], ['x' => 'string']);
+        $this->assertSame('expectedValue', $v->whenFails(fn () => 'notExpectedValue', fn () => 'expectedValue'));
+    }
+
     protected function getTranslator()
     {
         return m::mock(TranslatorContract::class);

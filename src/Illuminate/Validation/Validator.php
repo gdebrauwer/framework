@@ -516,6 +516,32 @@ class Validator implements ValidatorContract
     }
 
     /**
+     * Return a value if the data passes the validation rules.
+     *
+     * @param  \Closure|mixed  $value
+     * @param  \Closure|mixed  $default
+     *
+     * @return bool
+     */
+    public function whenPasses($value, $default = null)
+    {
+        return $this->passes() ? value($value) : value($default);
+    }
+
+    /**
+     * Return a value if the data fails the validation rules.
+     *
+     * @param  \Closure|mixed  $value
+     * @param  \Closure|mixed  $default
+     *
+     * @return bool
+     */
+    public function whenFails($value, $default = null)
+    {
+        return ! $this->passes() ? value($value) : value($default);
+    }
+
+    /**
      * Determine if the attribute should be excluded.
      *
      * @param  string  $attribute
